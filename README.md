@@ -1,6 +1,7 @@
 # microeconometrics-cost-structure-R #
 
-👤 Autor: **Juan Miguel Rodríguez Trujillo**  
+
+Autor: **Juan Miguel Rodríguez Trujillo**  
 Economista — Microeconometría aplicada y ciencia de datos
 
 ## 📊 Estructura de costos en un mercado competitivo  ##
