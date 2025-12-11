@@ -1,0 +1,648 @@
+---
+title: "Estructura de costos en un mercado competitivo: recomendaciones desde la microeconomía para la inversión en el mercado de capitales y ETF's sectoriales"
+author: "Juan Miguel Rodríguez Trujillo"
+date: "2025-01-28"
+output: html_document
+css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+```
+
+```{r, echo=FALSE, out.width="\\textwidth", fig.align='center'}
+knitr::include_graphics("Microeconomía y mercado de capitales.jpg")
+```
+
+
+Este proyecto tiene como objetivo analizar la **estructura de costos en un mercado competitivo**, enfocándose en la **estimación de una función de costos totales y el análisis de sus componentes.** En primer lugar, se cargará y explorará el dataset proporcionado, identificando las principales características descriptivas. A continuación, se estimará la función de costos totales utilizando un **modelo de regresión polinómica**, cuyos resultados serán presentados y analizados. Posteriormente, se derivarán las **funciones de costo total, fijo, marginal, medio y variable medio**, las cuales serán graficadas para una mejor comprensión visual. El análisis continuará con la interpretación de los coeficientes estimados y finalizando con la evaluación de la significancia estadística del modelo, tanto individual como conjunta. Finalmente, se presentarán **conclusiones que resuman los hallazgos y recomendaciones desde la teoría microeconómica para la inversión en los mercados de capitales y ETF's sectoriales.**
+
+El proyecto seguirá la siguiente estructura:
+
+- Carga y exploración de datos.
+- Estimación e interpretación de la función de costos totales.
+- Estimación e interpretación de las funciones complementarias de costos (fijo, marginal, medio, variable medio).
+- Análisis y visualización conjunta de costo marginal y costo variable medio.
+- Conclusiones y recomendaciones desde la microeconomía para la inversión en los mercados de capitales y ETF's sectoriales.
+
+
+## Carga y exploración de datos
+
+El `dataset` que usaremos lleva como nombre `costos_mercado`. Este `dataset` contiene información de los **costos totales y producción** para una industria o mercado compuesto por **30 empresas**. Cada fila hace referencia a la información de una empresa en el sector. Denotarmeos los costos totales y producción como `CT` y `Y`, respectivamente.
+
+A cotinuación cargamos las librerías necesarias, el dataset `costos_mercado` y visualizamos sus datos:
+
+```{r}
+# Cargamos las librerías
+
+library(ggplot2)
+library(readxl)
+```
+
+```{r}
+# Cargamos el dataset
+
+costos_mercado <- read_excel("costos_mercado.xlsx")
+```
+
+
+### Gráfico de dispersión (Scatter-plot)
+
+```{r}
+# Creamos el gráfico de dispersión (scatter plot) para visualizar la relación entre la costos totales y la producción
+
+ggplot(costos_mercado, aes(x = Y, y = CT)) +
+  geom_point(color = "#0073C2", size = 3, alpha = 0.8) +  
+  labs(
+    title = "Relación entre Producción y Costos Totales",
+    subtitle = "Visualización de datos de 30 empresas en un mercado competitivo",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costos Totales (CT) - Millones de pesos",
+  ) +
+  theme_minimal(base_size = 14) +  
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),  
+    plot.subtitle = element_text(size = 12, hjust = 0.5),  
+    plot.caption = element_text(size = 10, hjust = 0.5),  
+    panel.grid.major = element_line(color = "gray85"),  
+    panel.grid.minor = element_blank()  
+  )
+```
+
+Como es de esperar, se observa una relación directamente proporcional entre la producción y los costos totales: a medida que aumenta la producción, aumentan los costos.
+
+## Estimación de la función de costos totales
+
+Ya conociendo visualmente la dispersión de los datos, procedemos a estimar el modelo de regresión. En este caso, estimamos un modelo de regresión polinómica de tercer grado. Sin embargo, es recomendable probar otros modelos como: regresión lineal, polinómica de segundo grado, entre otros.
+
+En este ejercicio la función de costos se define como 
+
+$$CT_i = \beta_0 + \beta_1 Y_i + \beta_2 Y_i^2 + \beta_3 Y_i^3 + \varepsilon_i$$
+
+Donde:
+
+- \( CT_i \): Costo total (en millones de pesos).
+- \( Y_i \): Producción (en miles de unidades).
+- \( \beta_0, \beta_1, \beta_2, \beta_3 \): Coeficientes estimados.
+- \( \varepsilon_i \): Término de error.
+
+A continuación procedemos a estimar nuestro modelo:
+
+
+```{r}
+# Crear el modelo de regresión polinómica de tercer grado
+modelo <- lm(CT ~ poly(Y, 3, raw = TRUE), data = costos_mercado)
+
+# Comando para visualizar los resultados del modelo
+summary(modelo)   
+```
+
+### Interpretación de los coeficientes del modelo de regresión
+
+Los resultados de la regresión polinómica de tercer grado muestran los coeficientes estimados para la relación entre la producción `(Y)` y los costos totales`(CT)`, evaluados con un nivel de `significancia de 0.1`. El intercepto ($B_0 = 185.53$) es altamente significativo `(p<0.001)`, lo que indica que, incluso cuando la producción es cero, **los costos fijos en este sector tienen un valor promedio de 185.53 unidades monetarias.**
+
+El **coeficiente lineal** ($B_1 = 22.55$) es significativo al nivel de 0.05 `(p=0.032)`, lo que sugiere que un aumento unitario en la producción está asociado con un incremento promedio de 22.55 en los costos totales. El **coeficiente cuadrático** ($B_2=3.34$) tiene un `p=0.0746`, lo que lo hace significativo al un nivel de 0.1, aunque con menor robustez en comparación con los demás términos. Finalmente, **el coeficiente cúbico** ($B_3=0.63$) es altamente significativo `(p<0.001)`, lo que respalda la inclusión de términos cúbicos en el modelo para capturar relaciones no lineales importantes.
+
+### Significancia del modelo
+
+El $R^2$ `(0.99)`  del modelo, que **indica la proporción de la variación en los costos totales explicada por la producción**, refleja un buen ajuste del modelo a los datos. Esto sugiere que los términos polinómicos incluidos capturan adecuadamente la relación entre producción y costos totales en este mercado, resaltando la importancia de considerar efectos no lineales para describir las dinámicas del sector.
+
+### Estimación del modelo
+
+Luego, la estimación de la función polinómica queda de la siguiente forma:
+
+$$
+{CT}_i = 185.53 + 22.55 Y_i - 3.34 Y_i^2 + 0.63 Y_i^3
+$$
+Donde:
+
+- $B_0 = 185.53$ representa el intercepto
+- $B_1 = 22.55$ representa el coeficiente lineal
+- $B_2 = -3,34$ representa el coeficiente cuadrático
+- $B_3 = 0.63$ representa el coeficiente cúbico
+
+### Visualización del modelo estimado vs datos reales
+
+A continuación se expondrá el código para el gráfico que relaciona la dispersión de los puntos de costos totales y producción, junto a la ecuación polinómica estimada:
+
+```{r}
+
+# Código para que ggplot acepte tildes en las palabras
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+
+# Crear un rango de valores para la producción (Y)
+Y_vals <- seq(min(costos_mercado$Y), max(costos_mercado$Y), length.out = 100)
+
+# Predecir los costos totales (CT) usando el modelo
+CT_preds <- predict(modelo, newdata = data.frame(Y = Y_vals))
+
+# Crear un rango de valores para la producción (Y)
+Y_vals <- seq(min(costos_mercado$Y), max(costos_mercado$Y), length.out = 100)
+
+# Predecir los costos totales (CT) usando el modelo
+CT_preds <- predict(modelo, newdata = data.frame(Y = Y_vals))
+
+# Crear un dataframe para la línea de predicción
+predicted_data <- data.frame(Y = Y_vals, CT = CT_preds)
+
+# Crear el scatter plot con la curva ajustada
+ggplot(costos_mercado, aes(x = Y, y = CT)) +
+  geom_point(color = "#0073C2", size = 3, alpha = 0.8) +  
+  geom_line(data = predicted_data, aes(x = Y, y = CT), color = "red", size = 1) +  
+  labs(
+    title = "Relación entre Producción y Costos Totales",
+    subtitle = "Datos observados y función polinómica estimada",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costos Totales (CT) - Millones de pesos"
+  ) +
+  theme_minimal(base_size = 14) +  # Tema minimalista
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+## Estimación de las funciones complementarias de costos (fijo, marginal, medio, variable medio)
+
+### Costos fijos
+
+En el modelo econométrico estimado, **los costos fijos son representados por el término constante $B_0$ en la ecuación de costos totales.** En este caso, $B_0 = 185.53$ unidades monterias. **Los costos fijos son aquellos que no dependen del nivel de producción $Y$**, es decir, **permanecen constantes incluso cuando la producción es cero**. Estos costos suelen incluir gastos como alquiler de instalaciones, salarios administrativos y servicios básicos.
+
+
+Costos fijos estimados:
+
+$$ {CF}_i = B_0 = 185.53 $$
+
+### Costo fijo en el mercado de capitales
+
+Algunas industrias con **altos costos fijos son: manufactura, energía, transporte de carga, infraestructura y telecomunicaciones**. **Estas industrias se caracterizan por la presencia de barreras de entrada significativas debido a sus altos costos fijos**, lo que las hace menos flexibles frente a fluctuaciones en la demanda de corto plazo. Sin embargo, una vez establecidas, suelen beneficiarse de economías de escala, lo que puede hacerlas rentables y poco riesgosas en el largo plazo.
+
+
+**También existen otras industrias con bajos costos fijos como: tecnología, desarrollo de software, consultoría y servicios profesionales.** Las industrias con bajos costos fijos **son más flexibles y pueden adaptarse rápidamente a cambios en la demanda.** Sin embargo, suelen enfrentar alta competencia y menor estabilidad en el largo plazo, lo que las hace más riesgosas. 
+
+
+### Costo marginal
+
+
+**El costo marginal es el costo adicional en el que incurre una empresa al producir una unidad más de un bien o servicio**. Matemáticamente, se define como la derivada de la función de costos totales ($CT$) respecto a la cantidad producida ($Y$). 
+
+Usualmente se denota como:
+
+
+$$CMg = \frac{dCT}{dY}$$
+Donde:
+
+  - \( CMg \): Costo marginal
+  - \( CT \): Función de costos totales
+  - \( Y \): Nivel de producción
+
+
+A continuación, se procede a calcular la función de costo marginal para esta industria:
+
+
+**La función de costo marginal se obtiene derivando la función de costos totales (\(CT\)) respecto al nivel de producción (\(Y\))**:
+
+1. Función de costos totales:
+$$
+\widehat{CT} = 185.53 + 22.55 Y - 3.34 Y^2 + 0.63 Y^3
+$$
+
+2. Derivada respecto a \(Y\):
+$$
+CMg = \frac{dCT}{dY} = 22.55 - 2(3.34)Y + 3(0.63)Y^2
+$$
+
+3. Simplificando obtenemos que:
+$$
+CMg = 22.55 - 6.68Y + 1.89Y^2
+$$
+
+Donde:
+
+  - \(CMg\): Costo marginal.
+  - \(Y\): Nivel de producción.
+
+
+Ahora, se crea el gráfico para visualizar la función de costo marginal:
+
+```{r}
+# Calcular el costo marginal para cada valor de Y
+CMg_vals <- 22.55 - 6.68 * Y_vals + 1.89 * Y_vals^2
+
+# Crear un dataframe para la gráfica
+cmg_data <- data.frame(Y = Y_vals, CMg = CMg_vals)
+
+# Gráfico de la función estimada de costo marginal
+ggplot(cmg_data, aes(x = Y, y = CMg)) +
+  geom_line(color = "blue", size = 1) + 
+  labs(
+    title = "Función de Costo Marginal",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo Marginal (CM) - Millones de pesos",
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+### Costo marginal en el mercado de capitales
+
+**El costo marginal es clave para la toma de decisiones de producción, ya que ayuda a determinar:**
+
+- **Cuándo dejar de producir**: Si el *ingreso marginal* es menor que el *costo marginal*, continuar produciendo generará pérdidas.
+
+- **Eficiencia económica**: Se considera óptimo **producir hasta el punto donde el costo marginal iguala el ingreso marginal.**
+
+Algunas industrias con costos marginales usualmente crecientes son: **agropecuaria, minera y energética basada en combustibles fósiles**. Mientras que otras industrias con costos marginales usualmente decrecientes son: **manufactura, retail y telecomuniaciones.**
+
+**En conclusión**:
+
+- **Las industrias con costos marginales crecientes tienden a enfrentar desafíos a medida que escalan su producción**, lo que puede limitar su crecimiento.
+
+- **Las industrias con costos marginales decrecientes tienen ventajas competitivas al poder reducir sus costos por unidad con mayores niveles de producción**, haciéndolas más atractivas para la inversión a largo plazo, otorgando menor riesgo y mayor estabilidad.
+
+
+### Costo medio
+
+**El costo medio es el costo total dividido por el número de unidades producidas**. Representa el costo promedio por unidad producida e incluye tanto los costos fijos como los variables.
+
+Usualmente se denota como:
+
+$$
+CMe = \frac{CT}{Y}
+$$
+Donde:
+
+- \(CMe\): Costo medio
+- \(CT\): Costos totales
+- \(Y\): Nivel de producción
+
+Si utilizamos la función de costos totales estimada:
+
+$$
+CT = 185.53 + 22.55Y - 3.34Y^2 + 0.63Y^3
+$$
+
+La función de costo medio se obtiene dividiendo \(CT\) entre \(Y\):
+
+$$
+CMe = \frac{185.53 + 22.55Y - 3.34Y^2 + 0.63Y^3}{Y}
+$$
+
+Simplificando:
+
+$$
+CMe = \frac{185.53}{Y} + 22.55 - 3.34Y + 0.63Y^2
+$$
+
+Ahora, se crea el gráfico para visualizar la función de costo medio:
+
+```{r}
+# Calcular el costo medio para cada valor de Y
+CM_medio_vals <- (185.53 / Y_vals) + 22.55 - 3.34 * Y_vals + 0.63 * Y_vals^2
+
+# Crear un dataframe para la gráfica
+cm_medio_data <- data.frame(Y = Y_vals, CM_medio = CM_medio_vals)
+
+# Gráfico
+ggplot(cm_medio_data, aes(x = Y, y = CM_medio)) +
+  geom_line(color = "purple", size = 1) +  
+  labs(
+    title = "Función de Costo Medio",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo Medio (CM) - Millones de pesos",
+    caption = "Fuente: Modelo econométrico estimado"
+  ) +
+  ylim(40, NA) +  
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+A continuación se optimiza la función de costo medio para hallar su mínimo:
+
+
+```{r}
+# Definir la función de costo medio
+costo_medio <- function(Y) {
+  (185.53 / Y) + 22.55 - 3.34 * Y + 0.63 * Y^2
+}
+
+# Optimizar la función para encontrar el mínimo
+resultado <- optimize(costo_medio, interval = c(0.1, max(costos_mercado$Y)), tol = 1e-8)
+```
+
+```{r}
+# Mostrar el valor mínimo del costo medio:
+cat("El costo medio mínimo es:", resultado$objective, "millones de pesos\n")
+```
+
+```{r}
+# Mostrar el valor de la producción que minimiza el costo medio:
+cat("Se alcanza cuando la producción (Y) es:", resultado$minimum, "miles de unidades\n")
+```
+
+
+Hallado el costo medio mínimo, se visualiza el óptimo en su gráfico:
+
+```{r}
+
+# Calcular el costo medio para cada valor de Y
+CM_medio_vals <- (185.53 / Y_vals) + 22.55 - 3.34 * Y_vals + 0.63 * Y_vals^2
+
+# Crear un dataframe para la gráfica
+cm_medio_data <- data.frame(Y = Y_vals, CM_medio = CM_medio_vals)
+
+# Encontrar el mínimo de la función de costo medio
+resultado <- optimize(function(Y) (185.53 / Y) + 22.55 - 3.34 * Y + 0.63 * Y^2,
+                      interval = c(0.1, max(Y_vals)), tol = 1e-8)
+Y_min <- resultado$minimum
+CM_min <- resultado$objective
+
+# Crear el gráfico con las líneas discontinuas
+library(ggplot2)
+
+# Código para permitir tildes
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+
+ggplot(cm_medio_data, aes(x = Y, y = CM_medio)) +
+  geom_line(color = "purple", size = 1) + 
+  annotate("segment", x = Y_min, xend = Y_min, y = 40, yend = CM_min, 
+           linetype = "dashed", color = "blue") + 
+  annotate("segment", x = 0, xend = Y_min, y = CM_min, yend = CM_min, 
+           linetype = "dashed", color = "blue") +  
+  annotate("point", x = Y_min, y = CM_min, color = "red", size = 3) +  
+  labs(
+    title = "Función de Costo Medio",
+    subtitle = "Visualización del mínimo de la función de costo medio",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo Medio (CM) - Millones de pesos",
+  ) +
+  ylim(40, 120) + 
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+### Costo medio en el mercado de capitales
+
+Encontrar el costo medio mínimo es particularmente relevante en el contexto del mercado de capitales ya que **indica la eficiencia operativa de cada empresa dentro de un sector. Empresas que operan cerca de su costo medio mínimo suelen tener estructuras de costos más competitivas, lo que incrementa su capacidad para generar márgenes de ganancia sostenibles**. Esto no solo mejora su valoración en el mercado, sino que también refuerza su resiliencia frente a fluctuaciones en la demanda o aumentos en los costos de insumos. **En sectores con altos costos fijos, como manufactura o energía, operar cerca de este nivel es clave para aprovechar economías de escala y maximizar la rentabilidad.**
+
+En el análisis de ETF’s sectoriales, **el costo medio mínimo proporciona una métrica indirecta para evaluar la eficiencia del sector subyacente**. Por ejemplo, **un ETF que invierte en empresas del sector manufacturero puede ser más atractivo si las empresas que lo componen operan cerca de sus costos medios mínimos**, lo que sugiere una mayor capacidad para absorber fluctuaciones económicas y competir a nivel global. Por otro lado, **sectores con altos costos marginales y empresas alejadas de su nivel óptimo de costo medio pueden implicar mayor volatilidad y riesgos para los inversionistas**. Por ello, entender el costo medio mínimo y su relación con la estructura de costos sectorial ayuda a los inversionistas a tomar decisiones más informadas y alineadas con sus objetivos de riesgo y rentabilidad de acuerdo a su perfil.
+
+### Costo variable medio
+
+**El costo variable medio $CV_medio$ es el costo variable total dividido entre el nivel de producción $Y$.** Representa el costo promedio de los insumos que varían con la producción, como materiales, mano de obra directa y energía. **Es útil para analizar la eficiencia de la producción, excluyendo los costos fijos.**
+
+
+Usualmente se denota como:
+
+$$
+CV_{medio} = \frac{CV}{Y}
+$$
+
+
+Donde:
+
+  - \(CV_{medio}\): Costo variable medio.
+  - \(CV\): Costo variable total.
+  - \(Y\): Nivel de producción.
+
+En el modelo de costos totales, los costos variables corresponden a los términos dependientes de \(Y\):
+
+$$
+CV = 22.55Y - 3.34Y^2 + 0.63Y^3
+$$
+
+Por lo tanto, el costo variable medio se calcula como:
+
+$$
+CV_{medio} = \frac{22.55Y - 3.34Y^2 + 0.63Y^3}{Y}
+$$
+
+Simplificando obtenemos:
+
+$$
+CV_{medio} = 22.55 - 3.34Y + 0.63Y^2
+$$
+A continuación se presenta su gráfico:
+
+```{r}
+# Crear un rango de valores para la producción
+Y_vals <- seq(0.1, max(costos_mercado$Y), length.out = 100)
+
+# Calcular el costo variable medio
+CV_medio_vals <- 22.55 - 3.34 * Y_vals + 0.63 * Y_vals^2
+
+# Crear un dataframe para la gráfica
+cv_medio_data <- data.frame(Y = Y_vals, CV_medio = CV_medio_vals)
+
+# Crear el gráfico del costo variable medio
+library(ggplot2)
+
+ggplot(cv_medio_data, aes(x = Y, y = CV_medio)) +
+  geom_line(color = "green", size = 1) +  
+  labs(
+    title = "Función de Costo Variable Medio",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo Variable Medio (CV) - Millones de pesos",
+  ) +
+  ylim(10, NA) + 
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+A continuación se procede a calcular el óptimo del costo variable medio:
+
+```{r}
+# Definir la función de costo variable medio
+costo_variable_medio <- function(Y) {
+  22.55 - 3.34 * Y + 0.63 * Y^2
+}
+
+# Encontrar el mínimo de la función de costo variable medio
+resultado <- optimize(costo_variable_medio, interval = c(0.1, max(costos_mercado$Y)), tol = 1e-8)
+Y_min <- resultado$minimum
+CV_min <- resultado$objective
+```
+```{r}
+# Mostrar el valor mínimo del costo variable medio:
+cat("El mínimo costo variable medio es:", round(CV_min, 2), "millones de pesos\n")
+```
+
+```{r}
+# Mostrar el valor de la producción que minimiza el costo variable medio:
+cat("Se alcanza cuando la producción (Y) es:", round(Y_min, 2), "miles de unidades\n")
+```
+
+Ya conocidos los valores mínimos del costo variable medio se visualizan en el gráfico:
+
+```{r}
+# Crear un rango de valores para la producción
+Y_vals <- seq(0.1, max(costos_mercado$Y), length.out = 100)
+
+# Calcular los valores de costo variable medio
+CV_medio_vals <- costo_variable_medio(Y_vals)
+
+# Crear un dataframe para la gráfica
+cv_medio_data <- data.frame(Y = Y_vals, CV_medio = CV_medio_vals)
+
+# Crear el gráfico con las líneas discontinuas
+library(ggplot2)
+
+# Crear un rango de valores para la producción
+Y_vals <- seq(0.1, max(costos_mercado$Y), length.out = 100)
+
+# Calcular los valores de costo variable medio
+CV_medio_vals <- costo_variable_medio(Y_vals)
+
+# Crear un dataframe para la gráfica
+cv_medio_data <- data.frame(Y = Y_vals, CV_medio = CV_medio_vals)
+
+# Crear el gráfico con las líneas discontinuas
+library(ggplot2)
+
+ggplot(cv_medio_data, aes(x = Y, y = CV_medio)) +
+  geom_line(color = "green", size = 1) +  # Línea de la función de costo variable medio
+  geom_vline(xintercept = Y_min, linetype = "dashed", color = "blue") +  # Línea vertical en Y_min
+  geom_hline(yintercept = CV_min, linetype = "dashed", color = "blue") +  # Línea horizontal en CV_min
+  geom_point(aes(x = Y_min, y = CV_min), color = "red", size = 3) +  # Punto del mínimo
+  labs(
+    title = "Función de Costo Variable Medio",
+    subtitle = "Visualización del mínimo de la función de costo variable medio",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo Variable Medio (CV) - Millones de pesos",
+  ) + ylim(10, NA) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+### Costos varibales medios en el mercado de capitales
+
+**Los costos variables medios influyen directamente en los márgenes de ganancia, ya que reflejan el gasto variable promedio necesario para la producción**. Empresas que logran mantener bajos costos variables medios tienen una ventaja competitiva significativa, ya que **pueden ofrecer precios más atractivos en mercados sensibles al costo o aumentar sus márgenes de ganancia en mercados de alta demanda.**
+
+En el contexto de los ETF’s sectoriales, **analizar los costos variables medios de las empresas subyacentes ayuda a identificar sectores con potencial de rentabilidad y sostenibilidad**. Por ejemplo, un ETF que invierte en empresas manufactureras con costos variables medios decrecientes puede ser atractivo, ya que estas empresas están mejor posicionadas para beneficiarse de economías de escala. Por otro lado, sectores con costos variables medios altos y crecientes pueden estar más expuestos a riesgos operativos y a choques en los precios de los insumos. **Comprender esta dinámica permite a los inversionistas tomar decisiones más informadas, alinear sus estrategias con sus objetivos financieros y su perfil de riesgo**
+
+
+### Análisis y visualización conjunta de costo marginal y costo variable medio
+
+**¿Cuándo una firma sale del mercado?**
+
+La teoría microeconómica postula que en un mercado competitivo **el precio es igual al costo marginal ($P = CMg$).** Además, según esta teoría, las firmas salen de un
+ mercado competitivo cuando su costo marginal ($CMg$) iguala su costo variable medio ($CVM$). De esta forma, **si el precio llega al mínimo del costo variable medio, el ingreso de la firma permite pagar exactamente los costos variables**, pero tiene pérdidas debido a los costos fijos, de modo que, si sale del mercado evita pagar esos costos fijos que le ocasionan pérdidas.
+
+A continuación se presenta el gráfico y punto en el que las firmas salen del mercado:
+
+```{r}
+# Crear un rango de valores para la producción (Y)
+Y_vals <- seq(0.1, max(costos_mercado$Y), length.out = 100)
+
+# Calcular las funciones
+CM_vals <- 22.55 - 6.68 * Y_vals + 1.89 * Y_vals^2  # Costo marginal
+CV_medio_vals <- 22.55 - 3.34 * Y_vals + 0.63 * Y_vals^2  # Costo variable medio
+
+# Encontrar la intersección (punto donde CM = CV_medio)
+intersection_index <- which.min(abs(CM_vals - CV_medio_vals))
+Y_intersection <- Y_vals[intersection_index]
+Costo_intersection <- CM_vals[intersection_index]
+
+# Crear un dataframe para la gráfica
+costos_data <- data.frame(
+  Y = rep(Y_vals, 2),
+  Costo = c(CM_vals, CV_medio_vals),
+  Tipo = rep(c("Costo Marginal", "Costo Variable Medio"), each = length(Y_vals))
+)
+
+# Crear el gráfico
+library(ggplot2)
+
+ggplot(costos_data, aes(x = Y, y = Costo, color = Tipo)) +
+  geom_line(size = 1) +  # Curvas de las funciones
+  geom_point(aes(x = Y_intersection, y = Costo_intersection), color = "red", size = 3) +  # Punto de intersección
+  geom_vline(xintercept = Y_intersection, linetype = "dashed", color = "blue") +  # Línea vertical en la intersección
+  geom_hline(yintercept = Costo_intersection, linetype = "dashed", color = "blue") +  # Línea horizontal en la intersección
+  labs(
+    title = "Intersección entre Costo Variable Medio y Costo Marginal",
+    subtitle = "Visualización conjunta de las funciones de costos",
+    x = "Producción (Y) - Miles de unidades",
+    y = "Costo - Millones de pesos",
+    color = "Tipo de Costo",
+    caption = "Fuente: Modelo econométrico estimado"
+  ) +
+  annotate(
+    "text",
+    x = Y_intersection,
+    y = Costo_intersection + 5,
+    label = paste0("Intersección: Y = ", round(Y_intersection, 2), 
+                   ", Costo = ", round(Costo_intersection, 2)),
+    color = "black",
+    hjust = 1.1
+  ) + 
+  xlim (0, 5) + ylim(15, 25) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    plot.caption = element_text(size = 10, hjust = 0.5),
+    legend.position = "top",
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+### Análisis conjunto del costo marginal y costo variable medio en el mercado de capitales
+
+Desde la perspectiva de un inversionista, identificar ETF’s sectoriales compuestos por empresas que operan por encima del mínimo de su $CVm$ garantiza que **las firmas no solo puedan cubrir sus costos variables, sino que también generen márgenes para cubrir los costos fijos y, eventualmente, beneficios**. Por el contrario, sectores donde las empresas están cercanas a este punto crítico pueden representar mayores riesgos, especialmente en períodos de contracción económica. **Comprender estas dinámicas permite diversificar inversiones de manera estratégica, equilibrando la exposición al riesgo y aprovechando sectores con mayor estabilidad y crecimiento potencial.**
+
+Este análisis ayuda a identificar sectores o empresas con mayor capacidad para operar de manera eficiente incluso en escenarios de precios bajos, lo que las hace más resilientes frente a fluctuaciones económicas.
+
+
+## Recomendaciones desde la teoría microeconómica para inversionistas en mercados de capitales y ETF’s sectoriales
+
+**1. Prioriza sectores con economías de escala sostenibles**:  
+  Identifica ETF’s sectoriales que incluyan empresas con costos medios decrecientes en niveles altos de producción. Esto indica que las empresas tienen la capacidad de mejorar su eficiencia a medida que expanden su operación, lo que genera márgenes de ganancia más amplios y una mayor resiliencia frente a la competencia.
+
+**2. Evalúa la estructura de costos en períodos de volatilidad**:  
+  Sectores con altos costos fijos, como energía o infraestructura, pueden ser menos flexibles ante caídas en la demanda en el corto plazo. Considera diversificar en ETF’s que inviertan en sectores con costos predominantemente variables, como tecnología o comercio electrónico, los cuales tienen mayor capacidad de ajustarse a cambios en las condiciones del mercado en periodos de volatilidad.
+
+**3. Analiza el punto de equilibrio sectorial**:  
+   Asegúrate de que las empresas en las que inviertes operen cerca de su costo medio mínimo. Esto sugiere que están produciendo a niveles óptimos de eficiencia y tienen mayor capacidad para generar utilidades sostenibles, incluso en mercados altamente competitivos.
+
+**4. Considera la sensibilidad a los costos marginales**:  
+   Sectores donde los costos marginales crecen rápidamente pueden enfrentar mayores riesgos al intentar escalar la producción, especialmente en mercados saturados. Prioriza sectores donde las empresas tengan costos marginales controlados, lo que les permitirá expandirse sin comprometer su rentabilidad.
+
+**5. Diversifica en función de la naturaleza de los costos**:  
+   Combina ETF’s de sectores con altos costos fijos (estables en el largo plazo) y sectores con costos variables predominantes (más flexibles). Esta estrategia puede equilibrar la exposición al riesgo macroeconómico y aprovechar oportunidades en todos los diferentes escenarios de mercado.
+   
+   
+
+
